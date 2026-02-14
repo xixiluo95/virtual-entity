@@ -77,8 +77,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-repo/auto-media-project.git
-cd auto-media-project
+git clone https://github.com/xixiluo95/virtual-entity.git
+cd virtual-entity
 
 # 运行安装脚本
 ./install.sh
