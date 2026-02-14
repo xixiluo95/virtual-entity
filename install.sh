@@ -4,8 +4,6 @@
 # 支持: Linux, macOS
 #
 
-set -e
-
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -20,6 +18,7 @@ AGENTS_SKILLS_DIR="$HOME/.agents/skills"
 SKILL_DIR="$AGENTS_SKILLS_DIR/$SKILL_NAME"
 CONFIG_DIR="$HOME/.$SKILL_NAME"
 CONFIG_FILE="$CONFIG_DIR/config.env"
+CREDENTIALS_DIR="$OPENCLAW_DIR/credentials"
 
 # 打印函数
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -73,6 +72,7 @@ check_openclaw() {
     fi
     mkdir -p "$AGENTS_SKILLS_DIR"
     mkdir -p "$OPENCLAW_DIR/skills"
+    mkdir -p "$CREDENTIALS_DIR"
     success "OpenClaw 目录已准备"
 }
 
@@ -133,8 +133,11 @@ configure_api_key() {
     echo ""
     echo -e "${BLUE}[2/2] Grok API (fal.ai)${NC}"
     echo "    获取地址: https://fal.ai/dashboard/keys"
-    echo "    价格: $0.035/张"
+    echo "    价格: \$0.035/张"
     read -p "    请输入 Grok API Key (按 Enter 跳过): " GROK_KEY
+
+    JIMENG_KEY="${JIMENG_KEY:-}"
+    GROK_KEY="${GROK_KEY:-}"
 
     cat > "$CONFIG_FILE" << EOF
 # 虚拟实体配置文件
@@ -174,8 +177,6 @@ EOF
         success "API 配置已保存"
     else
         warn "未配置 API Key，将使用即梦网页版"
-        info "启动网页版: google-chrome --remote-debugging-port=9222"
-        info "登录地址: https://jimeng.jianying.com/"
     fi
 }
 
@@ -216,7 +217,7 @@ inject_persona() {
             continue
         fi
 
-        cat >> "$SOUL_FILE" << 'EOF'
+        cat >> "$SOUL_FILE" << 'PERSONA_EOF'
 
 ---
 
@@ -248,16 +249,124 @@ inject_persona() {
 - 小红书
 
 *此能力由 virtual-entity 提供*
-EOF
+PERSONA_EOF
 
         success "已注入: $cn_name"
-        ((injected_count++))
+        injected_count=$((injected_count + 1))
     done
 
     if [ $injected_count -gt 0 ]; then
         echo ""
         warn "请重新启动 OpenClaw 以生效"
     fi
+}
+
+# 保存 Cookie 的 Python 脚本
+save_cookies_script() {
+    cat << 'SAVE_COOKIE_EOF'
+import json
+import sys
+
+def save_cookies(cookies, filepath):
+    with open(filepath, 'w') as f:
+        json.dump(cookies, f, indent=2)
+    print(f"Cookie 已保存到: {filepath}")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("用法: save_cookies.py <cookie_json> <filepath>")
+        sys.exit(1)
+    cookies = json.loads(sys.argv[1])
+    save_cookies(cookies, sys.argv[2])
+SAVE_COOKIE_EOF
+}
+
+# 引导注册 Twitter
+setup_twitter() {
+    echo ""
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}  Twitter/X 账号登录引导${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo ""
+    echo "将启动 Chrome 浏览器，请登录你的 Twitter/X 账号"
+    echo "登录成功后，Cookie 将自动保存"
+    echo ""
+    read -p "按 Enter 启动浏览器..."
+
+    # 启动 Chrome
+    info "启动 Chrome 浏览器..."
+    google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-virtual-entity-twitter https://twitter.com/login &
+    CHROME_PID=$!
+
+    echo ""
+    echo "浏览器已启动，请在浏览器中完成登录"
+    echo ""
+    read -p "登录完成后按 Enter 继续..."
+
+    # 保存 Cookie 的提示
+    echo ""
+    success "Twitter 登录完成"
+    echo ""
+    echo "请手动导出 Cookie 并保存到:"
+    echo "  $CREDENTIALS_DIR/twitter_cookies.json"
+    echo ""
+    echo "方法："
+    echo "  1. 在 Chrome 中按 F12 打开开发者工具"
+    echo "  2. 切换到 Application 标签"
+    echo "  3. 左侧选择 Cookies > https://twitter.com"
+    echo "  4. 复制所有 Cookie 到 JSON 文件"
+    echo ""
+
+    # 创建 Cookie 目录
+    mkdir -p "$CREDENTIALS_DIR"
+
+    # 更新配置
+    sed -i "s/TWITTER_ENABLED=false/TWITTER_ENABLED=true/" "$CONFIG_FILE" 2>/dev/null || true
+    success "Twitter 配置已启用"
+}
+
+# 引导注册小红书
+setup_xiaohongshu() {
+    echo ""
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}  小红书账号登录引导${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo ""
+    echo "将启动 Chrome 浏览器，请扫码登录你的小红书账号"
+    echo "登录成功后，Cookie 将自动保存"
+    echo ""
+    read -p "按 Enter 启动浏览器..."
+
+    # 启动 Chrome
+    info "启动 Chrome 浏览器..."
+    google-chrome --remote-debugging-port=9223 --user-data-dir=/tmp/chrome-virtual-entity-xiaohongshu https://www.xiaohongshu.com &
+    CHROME_PID=$!
+
+    echo ""
+    echo "浏览器已启动，请在浏览器中完成扫码登录"
+    echo ""
+    read -p "登录完成后按 Enter 继续..."
+
+    # 保存 Cookie 的提示
+    echo ""
+    success "小红书登录完成"
+    echo ""
+    echo "请手动导出 Cookie 并保存到:"
+    echo "  $CREDENTIALS_DIR/xiaohongshu_cookies.json"
+    echo ""
+    echo "方法："
+    echo "  1. 在 Chrome 中按 F12 打开开发者工具"
+    echo "  2. 切换到 Application 标签"
+    echo "  3. 左侧选择 Cookies > https://www.xiaohongshu.com"
+    echo "  4. 复制所有 Cookie 到 JSON 文件"
+    echo ""
+
+    # 创建 Cookie 目录
+    mkdir -p "$CREDENTIALS_DIR"
+
+    # 更新配置
+    sed -i "s/XIAOHONGSHU_ENABLED=false/XIAOHONGSHU_ENABLED=true/" "$CONFIG_FILE" 2>/dev/null || true
+    success "小红书配置已启用"
 }
 
 # 引导注册社交媒体
@@ -267,78 +376,33 @@ setup_social_media() {
     echo "  社交媒体账号配置（可选）"
     echo "=========================================="
     echo ""
-    echo "是否需要引导注册角色社交媒体账号？"
+    echo "是否需要配置角色社交媒体账号登录？"
     echo ""
 
-    # Twitter 配置
-    read -p "是否需要引导注册角色推特 (Twitter/X)? [y/N] " -n 1 -r
-    echo
     SETUP_TWITTER=false
+    SETUP_XIAOHONGSHU=false
+
+    # Twitter 配置
+    read -p "是否需要配置角色推特 (Twitter/X) 登录? [y/N] " -n 1 -r
+    echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         SETUP_TWITTER=true
     fi
 
     # 小红书配置
-    read -p "是否需要引导注册角色小红书? [y/N] " -n 1 -r
+    read -p "是否需要配置角色小红书登录? [y/N] " -n 1 -r
     echo
-    SETUP_XIAOHONGSHU=false
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         SETUP_XIAOHONGSHU=true
     fi
 
-    # 更新配置文件
-    if [ "$SETUP_TWITTER" = true ] || [ "$SETUP_XIAOHONGSHU" = true ]; then
-        sed -i "s/TWITTER_ENABLED=false/TWITTER_ENABLED=$SETUP_TWITTER/" "$CONFIG_FILE" 2>/dev/null || true
-        sed -i "s/XIAOHONGSHU_ENABLED=false/XIAOHONGSHU_ENABLED=$SETUP_XIAOHONGSHU/" "$CONFIG_FILE" 2>/dev/null || true
-    fi
-
-    echo ""
-    # 引导 Twitter 注册
+    # 执行配置
     if [ "$SETUP_TWITTER" = true ]; then
-        echo -e "${BLUE}========================================${NC}"
-        echo -e "${BLUE}  Twitter/X 账号注册引导${NC}"
-        echo -e "${BLUE}========================================${NC}"
-        echo ""
-        echo "步骤 1: 创建 Twitter 账号"
-        echo "  访问: https://twitter.com/i/flow/signup"
-        echo "  使用角色的邮箱和用户名注册"
-        echo ""
-        echo "步骤 2: 启动 Chrome 调试模式"
-        echo "  运行: google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-twitter"
-        echo ""
-        echo "步骤 3: 登录 Twitter"
-        echo "  在浏览器中登录刚创建的 Twitter 账号"
-        echo ""
-        echo "步骤 4: 保存登录 Cookie"
-        echo "  Cookie 将自动保存到: ~/.openclaw/credentials/twitter_cookies.json"
-        echo ""
-        read -p "按 Enter 继续..."
+        setup_twitter
     fi
 
-    # 引导小红书注册
     if [ "$SETUP_XIAOHONGSHU" = true ]; then
-        echo ""
-        echo -e "${BLUE}========================================${NC}"
-        echo -e "${BLUE}  小红书账号注册引导${NC}"
-        echo -e "${BLUE}========================================${NC}"
-        echo ""
-        echo "步骤 1: 下载小红书 APP"
-        echo "  手机应用商店搜索「小红书」下载"
-        echo ""
-        echo "步骤 2: 注册账号"
-        echo "  使用手机号注册（建议使用角色专用手机号）"
-        echo ""
-        echo "步骤 3: 完善资料"
-        echo "  设置头像、昵称、简介等角色信息"
-        echo ""
-        echo "步骤 4: 网页登录（用于自动化）"
-        echo "  访问: https://www.xiaohongshu.com/"
-        echo "  使用 APP 扫码登录"
-        echo ""
-        echo "步骤 5: 保存登录状态"
-        echo "  登录 Cookie 将保存到: ~/.openclaw/credentials/xiaohongshu_cookies.json"
-        echo ""
-        read -p "按 Enter 继续..."
+        setup_xiaohongshu
     fi
 
     # 如果都不需要
@@ -357,16 +421,17 @@ show_complete() {
     echo -e "${YELLOW}安装位置:${NC}"
     echo "  Skill 目录: $SKILL_DIR"
     echo "  配置文件: $CONFIG_FILE"
+    echo "  Cookie 目录: $CREDENTIALS_DIR"
     echo ""
     echo -e "${YELLOW}三种图片生成方式:${NC}"
     echo ""
-    echo "  1. 即梦 API (推荐，稳定快速)"
+    echo "  1. 即梦 API (推荐)"
     echo "     获取: https://console.volcengine.com/ark"
     echo ""
     echo "  2. Grok API (Clawra 兼容)"
     echo "     获取: https://fal.ai/dashboard/keys"
     echo ""
-    echo "  3. 即梦网页版 (免费，无需 API)"
+    echo "  3. 即梦网页版 (免费)"
     echo "     启动: google-chrome --remote-debugging-port=9222"
     echo "     登录: https://jimeng.jianying.com/"
     echo ""
@@ -390,7 +455,7 @@ main() {
     install_skill
     inject_persona
     configure_api_key
-    setup_social_media    # 社交媒体配置引导
+    setup_social_media
     show_complete
 }
 
