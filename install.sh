@@ -156,10 +156,12 @@ install_skill() {
         success "已复制社交媒体自动化模块"
     fi
 
-    # 创建符号链接到 OpenClaw skills 目录
-    if [ ! -L "$OPENCLAW_DIR/skills/$SKILL_NAME" ]; then
+    # 创建符号链接到 OpenClaw skills 目录（不覆盖现有链接）
+    if [ ! -e "$OPENCLAW_DIR/skills/$SKILL_NAME" ]; then
         ln -sf "$SKILL_DIR" "$OPENCLAW_DIR/skills/$SKILL_NAME"
         success "已创建符号链接: $OPENCLAW_DIR/skills/$SKILL_NAME"
+    else
+        info "符号链接已存在，跳过"
     fi
 
     success "Skill 安装完成: $SKILL_DIR"
@@ -233,6 +235,10 @@ MODEL_NAME=doubao-seedream-4-0-250828
 
 # 输出目录
 OUTPUT_DIR=${CONFIG_DIR}/output
+
+# 自动发布设置
+AUTO_POST_ENABLED=true
+AUTO_POST_INTERVAL_HOURS=6
 EOF
         chmod 600 "$CONFIG_FILE"
         success "API Key 已保存到 $CONFIG_FILE"
@@ -252,10 +258,114 @@ ARK_API_URL=https://ark.cn-beijing.volces.com/api/v3/images/generations
 
 # 模型名称
 MODEL_NAME=doubao-seedream-4-0-250828
+
+# 自动发布设置
+AUTO_POST_ENABLED=true
+AUTO_POST_INTERVAL_HOURS=6
 EOF
         chmod 600 "$CONFIG_FILE"
         warn "跳过 API Key 配置，请稍后编辑 $CONFIG_FILE"
     fi
+}
+
+# 注入角色设定（可选，追加而非覆盖）
+inject_persona() {
+    echo ""
+    echo "=========================================="
+    echo "  角色设定注入（可选）"
+    echo "=========================================="
+    echo ""
+    echo "是否要将虚拟角色的自拍能力注入到现有 Agent？"
+    echo ""
+    echo "注意：这是【追加】操作，不会删除现有配置！"
+    echo ""
+
+    # 查找现有的 workspace
+    WORKSPACES=$(find "$OPENCLAW_DIR" -maxdepth 1 -type d -name "workspace-*" 2>/dev/null | head -5)
+
+    if [ -z "$WORKSPACES" ]; then
+        info "未检测到现有的 OpenClaw workspace，跳过角色注入"
+        return
+    fi
+
+    echo "检测到以下 workspace："
+    echo ""
+    i=1
+    for ws in $WORKSPACES; do
+        name=$(basename "$ws")
+        echo "  $i. $name"
+        ((i++))
+    done
+    echo ""
+
+    read -p "是否要注入角色设定? [y/N] " -n 1 -r
+    echo
+
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        info "跳过角色注入"
+        return
+    fi
+
+    echo ""
+    read -p "请输入要注入的 workspace 编号 (1-$((i-1))): " ws_num
+
+    # 获取选中的 workspace
+    selected_ws=$(echo "$WORKSPACES" | sed -n "${ws_num}p")
+    if [ -z "$selected_ws" ]; then
+        warn "无效的选择，跳过"
+        return
+    fi
+
+    SOUL_FILE="$selected_ws/SOUL.md"
+
+    if [ ! -f "$SOUL_FILE" ]; then
+        warn "未找到 $SOUL_FILE，跳过"
+        return
+    fi
+
+    # 检查是否已经注入过
+    if grep -q "virtual-entity" "$SOUL_FILE" 2>/dev/null; then
+        warn "检测到已注入过，跳过"
+        return
+    fi
+
+    # 追加角色设定（不覆盖原有内容）
+    cat >> "$SOUL_FILE" << 'EOF'
+
+---
+
+## 自拍能力 (virtual-entity)
+
+我可以根据对话上下文和情绪生成自拍图片，并发布到社交媒体。
+
+### 触发词
+- "发自拍"、"发照片"、"自拍"
+- "想你了"、"好久不见"
+- "心情不好"、"开心"、"难过"、"无聊"
+
+### 情绪感知
+当用户长时间未与我交互时，我会：
+- 6小时后：想念用户，可能发自拍
+- 24小时后：担心用户，发忧郁风格自拍
+- 3天后：发"好久不见"类动态
+
+### 图片风格
+我掌握 28 种拍照风格，会根据当前情绪自动选择：
+- 开心时：比心自拍、举高自拍
+- 想念时：对镜微笑、仰望自拍
+- 难过时：低头自拍、背影自拍
+- 无聊时：托腮自拍、遮脸自拍
+
+### 社交媒体
+我可以将自拍发布到：
+- Twitter/X
+- 小红书
+
+*此能力由 virtual-entity 提供*
+EOF
+
+    success "已追加角色设定到: $SOUL_FILE"
+    warn "请重新启动 OpenClaw 以生效"
 }
 
 # 显示安装完成信息
@@ -265,34 +375,34 @@ show_complete() {
     echo -e "${GREEN}  安装完成!${NC}"
     echo "=========================================="
     echo ""
-    echo -e "${YELLOW}已安装到 OpenClaw Skills:${NC}"
-    echo "  $SKILL_DIR"
-    echo "  $OPENCLAW_DIR/skills/$SKILL_NAME (符号链接)"
+    echo -e "${YELLOW}安装位置:${NC}"
+    echo "  Skill 目录: $SKILL_DIR"
+    echo "  符号链接: $OPENCLAW_DIR/skills/$SKILL_NAME"
+    echo "  配置文件: $CONFIG_FILE"
     echo ""
     echo -e "${YELLOW}三种图片生成方式:${NC}"
     echo ""
     echo -e "${BLUE}方式一: 即梦 API (推荐)${NC}"
-    echo "  1. 获取 API Key: https://console.volcengine.com/ark"
-    echo "  2. 配置: vi $CONFIG_FILE"
-    echo "  3. OpenClaw 会自动识别触发词"
+    echo "  获取: https://console.volcengine.com/ark"
+    echo "  配置: vi $CONFIG_FILE"
     echo ""
     echo -e "${BLUE}方式二: Grok API (Clawra 兼容)${NC}"
-    echo "  1. 获取 API Key: https://fal.ai/dashboard/keys"
-    echo "  2. 配置: export FAL_API_KEY=\"your-key\""
+    echo "  获取: https://fal.ai/dashboard/keys"
     echo ""
     echo -e "${BLUE}方式三: 即梦网页版 (免费)${NC}"
-    echo "  1. 启动 Chrome: google-chrome --remote-debugging-port=9222"
-    echo "  2. 登录: https://jimeng.jianying.com/"
+    echo "  启动: google-chrome --remote-debugging-port=9222"
+    echo "  登录: https://jimeng.jianying.com/"
     echo ""
     echo "=========================================="
     echo ""
-    echo "触发词（对 OpenClaw 说）:"
-    echo "  \"发张自拍\""
-    echo "  \"生成一张咖啡厅的照片\""
-    echo "  \"发到推特\""
+    echo -e "${YELLOW}OpenClaw 触发词:${NC}"
+    echo "  \"发自拍\" - 生成自拍"
+    echo "  \"想你了\" - 生成想念风格自拍"
+    echo "  \"发到推特\" - 发布到 Twitter"
+    echo "  \"心里空落落的\" - 自动检测情绪"
     echo ""
-    echo "配置文件: $CONFIG_FILE"
-    echo "Skill 目录: $SKILL_DIR"
+    echo -e "${YELLOW}自动行为:${NC}"
+    echo "  长时间未交互 → 自动发社交媒体动态"
     echo ""
 }
 
@@ -320,6 +430,9 @@ main() {
 
     # 配置
     configure_api_key
+
+    # 可选：注入角色设定
+    inject_persona
 
     # 完成
     show_complete
