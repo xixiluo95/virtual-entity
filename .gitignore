@@ -43,6 +43,13 @@ htmlcov/
 jimeng-selfie-app/output/
 jimeng-selfie-app/logs/
 
+# 团队协作临时目录（包含敏感路径）
+jimeng-selfie-planner-team/
+
+# Cookie 和凭证文件
+credentials/
+*.cookies.json
+
 # 配置文件（包含敏感信息）
 .env
 *.env

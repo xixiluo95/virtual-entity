@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "分析 Clawra 项目源代码结构",
-  "description": "详细分析 Clawra 项目的完整源代码结构，包括：\n1. CLI 安装器 (bin/cli.js) 的完整逻辑\n2. 图像生成脚本 (scripts/*.ts) 的 API 调用方式\n3. SKILL.md 的技能定义格式\n4. soul-injection.md 的角色模板\n\n重点关注可复用的代码和逻辑",
-  "activeForm": "分析 Clawra 源代码",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

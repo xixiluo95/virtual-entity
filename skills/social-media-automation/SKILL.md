@@ -18,7 +18,7 @@ description: "OpenClaw社交媒体自动化Skill。用于AI图片生成(即梦)�
 |------|------|
 | 内置模型 | GLM-4.7 (智谱AI) |
 | 浏览器连接 | Chrome CDP (端口9222) |
-| Python环境 | `/home/xixil/.openclaw/openclaw-env` |
+| Python环境 | `~/.openclaw/openclaw-env` |
 
 ### 适用场景
 
@@ -153,12 +153,12 @@ page.goto("https://jimeng.jianying.com/")
 # 保存Cookie
 import json
 
-def save_cookies(page, filepath="/home/xixil/.openclaw/credentials/jimeng_cookies.json"):
+def save_cookies(page, filepath="~/.openclaw/credentials/jimeng_cookies.json"):
     cookies = page.context.cookies()
     with open(filepath, 'w') as f:
         json.dump(cookies, f)
 
-def load_cookies(page, filepath="/home/xixil/.openclaw/credentials/jimeng_cookies.json"):
+def load_cookies(page, filepath="~/.openclaw/credentials/jimeng_cookies.json"):
     import os
     if os.path.exists(filepath):
         with open(filepath, 'r') as f:
@@ -294,7 +294,7 @@ def generate_image_jimeng(prompt: str, output_path: str, style: str = None):
 |------|------|
 | URL | https://x.com/ |
 | 登录方式 | Cookie持久化 / 用户名密码 |
-| Cookie路径 | `/home/xixil/.openclaw/credentials/twitter_cookies.json` |
+| Cookie路径 | `~/.openclaw/credentials/twitter_cookies.json` |
 
 ### 发帖流程（实测）
 
@@ -326,7 +326,7 @@ def generate_image_jimeng(prompt: str, output_path: str, style: str = None):
 import json
 import os
 
-X_COOKIES_PATH = "/home/xixil/.openclaw/credentials/twitter_cookies.json"
+X_COOKIES_PATH = "~/.openclaw/credentials/twitter_cookies.json"
 
 def save_x_cookies(context):
     """保存X平台Cookie"""
@@ -375,7 +375,7 @@ def post_tweet(page, text: str, image_path: str = None):
     参数:
         page: Playwright页面对象
         text: 推文内容
-        image_path: 图片路径（可选，使用/home/xixil/图片/目录）
+        image_path: 图片路径（可选，使用~/图片/目录）
     """
     # 1. 确保在Twitter页面
     if "x.com" not in page.url:
@@ -446,11 +446,11 @@ import sys
 import json
 import time
 
-sys.path.insert(0, '/home/xixil/.openclaw/openclaw-env/lib/python3.12/site-packages')
+sys.path.insert(0, '~/.openclaw/openclaw-env/lib/python3.12/site-packages')
 
 X_URL = "https://x.com/"
-X_COOKIES_PATH = "/home/xixil/.openclaw/credentials/twitter_cookies.json"
-IMAGE_DIR = "/home/xixil/图片"
+X_COOKIES_PATH = "~/.openclaw/credentials/twitter_cookies.json"
+IMAGE_DIR = "~/图片"
 
 def post_tweet(text: str, image_path: str = None):
     """发布推文"""
@@ -659,7 +659,7 @@ class SocialMediaAutomation:
     def __init__(self):
         self.browser = None
         self.page = None
-        self.image_dir = "/home/xixil/.openclaw/media/generated"
+        self.image_dir = "~/.openclaw/media/generated"
         os.makedirs(self.image_dir, exist_ok=True)
 
     def start(self):
@@ -837,7 +837,7 @@ def generate_image_with_retry(prompt: str):
 ### Cookie存储位置
 
 ```
-/home/xixil/.openclaw/credentials/
+~/.openclaw/credentials/
 ├── jimeng_cookies.json    # 即梦平台Cookie
 ├── x_cookies.json         # X平台Cookie
 └── ...
@@ -857,9 +857,9 @@ def refresh_cookies(platform: str, page):
     cookies = page.context.cookies()
 
     if platform == "jimeng":
-        filepath = "/home/xixil/.openclaw/credentials/jimeng_cookies.json"
+        filepath = "~/.openclaw/credentials/jimeng_cookies.json"
     elif platform == "x":
-        filepath = "/home/xixil/.openclaw/credentials/x_cookies.json"
+        filepath = "~/.openclaw/credentials/x_cookies.json"
     else:
         raise ValueError(f"未知平台: {platform}")
 
@@ -1058,7 +1058,7 @@ def download_and_close_popup(page):
     # 2. 下载图片
     img_url = large_img.get_attribute('src')
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = f"/home/xixil/图片/即梦生成_{timestamp}.png"
+    output_path = f"~/图片/即梦生成_{timestamp}.png"
 
     response = requests.get(img_url)
     with open(output_path, 'wb') as f:
@@ -1154,7 +1154,7 @@ def wait_for_generation_improved(driver, max_wait=60):
 ### 下载高清图片
 
 ```python
-def download_hd_image(driver, save_dir="/home/xixil/图片"):
+def download_hd_image(driver, save_dir="~/图片"):
     """
     下载高清图片（非缩略图）
 
