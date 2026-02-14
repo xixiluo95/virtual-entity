@@ -3,11 +3,6 @@
 # 虚拟实体 (Virtual Entity) - OpenClaw 集成安装脚本
 # 支持: Linux, macOS
 #
-# 使用方法:
-#   curl -fsSL https://raw.githubusercontent.com/xixiluo95/virtual-entity/main/install.sh | bash
-#   或
-#   ./install.sh
-#
 
 set -e
 
@@ -16,7 +11,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # 配置
 SKILL_NAME="virtual-entity"
@@ -27,142 +22,87 @@ CONFIG_DIR="$HOME/.$SKILL_NAME"
 CONFIG_FILE="$CONFIG_DIR/config.env"
 
 # 打印函数
-info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-    exit 1
-}
+info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+success() { echo -e "${GREEN}[成功]${NC} $1"; }
+warn() { echo -e "${YELLOW}[警告]${NC} $1"; }
+error() { echo -e "${RED}[错误]${NC} $1"; exit 1; }
 
 # 检测操作系统
 detect_os() {
     case "$(uname -s)" in
         Linux*)     OS="linux";;
         Darwin*)    OS="macos";;
-        CYGWIN*)    OS="cygwin";;
-        MINGW*)     OS="mingw";;
         *)          OS="unknown";;
     esac
     echo "检测到操作系统: $OS"
 }
 
-# 检查 Python 版本
+# 检查 Python
 check_python() {
     info "检查 Python 版本..."
-
     if command -v python3 &> /dev/null; then
         PYTHON_CMD="python3"
     elif command -v python &> /dev/null; then
         PYTHON_CMD="python"
     else
-        error "未找到 Python，请先安装 Python 3.8 或更高版本"
+        error "未找到 Python，请先安装 Python 3.8+"
     fi
-
     PYTHON_VERSION=$($PYTHON_CMD --version 2>&1 | awk '{print $2}')
-    PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d. -f1)
-    PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d. -f2)
-
-    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
-        error "Python 版本过低 (当前: $PYTHON_VERSION)，需要 3.8 或更高版本"
-    fi
-
     success "Python 版本: $PYTHON_VERSION"
 }
 
 # 检查 pip
 check_pip() {
     info "检查 pip..."
-
     if $PYTHON_CMD -m pip --version &> /dev/null; then
         PIP_CMD="$PYTHON_CMD -m pip"
     elif command -v pip3 &> /dev/null; then
         PIP_CMD="pip3"
-    elif command -v pip &> /dev/null; then
-        PIP_CMD="pip"
     else
-        error "未找到 pip，请先安装 pip"
+        error "未找到 pip"
     fi
-
     success "pip 已就绪"
 }
 
 # 检查 OpenClaw
 check_openclaw() {
     info "检查 OpenClaw 环境..."
-
     if [ ! -d "$OPENCLAW_DIR" ]; then
-        warn "未检测到 OpenClaw 目录 (~/.openclaw)"
-        info "将创建必要的目录结构..."
+        warn "未检测到 OpenClaw，将创建目录"
         mkdir -p "$OPENCLAW_DIR"
     fi
-
-    # 创建 .agents/skills 目录
     mkdir -p "$AGENTS_SKILLS_DIR"
     mkdir -p "$OPENCLAW_DIR/skills"
-
-    success "OpenClaw 目录结构已准备"
+    success "OpenClaw 目录已准备"
 }
 
 # 创建配置目录
 create_config_dir() {
     info "创建配置目录..."
-
     mkdir -p "$CONFIG_DIR"
     mkdir -p "$CONFIG_DIR/output"
     mkdir -p "$CONFIG_DIR/reference_images"
-
-    success "配置目录已创建: $CONFIG_DIR"
+    success "配置目录: $CONFIG_DIR"
 }
 
-# 安装 Skill 到 OpenClaw
+# 安装 Skill
 install_skill() {
     info "安装 Skill 到 OpenClaw..."
-
-    # 获取脚本所在目录
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    # 创建 Skill 目录
     mkdir -p "$SKILL_DIR"
     mkdir -p "$SKILL_DIR/scripts"
 
     # 复制 SKILL.md
-    if [ -f "$SCRIPT_DIR/skills/virtual-entity/SKILL.md" ]; then
-        cp "$SCRIPT_DIR/skills/virtual-entity/SKILL.md" "$SKILL_DIR/"
-        success "已复制 SKILL.md"
-    else
-        warn "未找到 SKILL.md，跳过"
-    fi
+    [ -f "$SCRIPT_DIR/skills/virtual-entity/SKILL.md" ] && cp "$SCRIPT_DIR/skills/virtual-entity/SKILL.md" "$SKILL_DIR/"
 
-    # 复制 jimeng-selfie-app 到 scripts
-    if [ -d "$SCRIPT_DIR/jimeng-selfie-app" ]; then
-        cp -r "$SCRIPT_DIR/jimeng-selfie-app/app" "$SKILL_DIR/scripts/"
-        cp "$SCRIPT_DIR/jimeng-selfie-app/main.py" "$SKILL_DIR/scripts/generate.py" 2>/dev/null || true
-        success "已复制应用脚本"
-    fi
+    # 复制应用脚本
+    [ -d "$SCRIPT_DIR/jimeng-selfie-app" ] && cp -r "$SCRIPT_DIR/jimeng-selfie-app/app" "$SKILL_DIR/scripts/"
 
-    # 复制 social-media-automation skill
-    if [ -d "$SCRIPT_DIR/skills/social-media-automation" ]; then
-        cp -r "$SCRIPT_DIR/skills/social-media-automation" "$SKILL_DIR/"
-        success "已复制社交媒体自动化模块"
-    fi
+    # 复制社交媒体模块
+    [ -d "$SCRIPT_DIR/skills/social-media-automation" ] && cp -r "$SCRIPT_DIR/skills/social-media-automation" "$SKILL_DIR/"
 
-    # 创建符号链接到 OpenClaw skills 目录（不覆盖现有链接）
-    if [ ! -e "$OPENCLAW_DIR/skills/$SKILL_NAME" ]; then
-        ln -sf "$SKILL_DIR" "$OPENCLAW_DIR/skills/$SKILL_NAME"
-        success "已创建符号链接: $OPENCLAW_DIR/skills/$SKILL_NAME"
-    else
-        info "符号链接已存在，跳过"
-    fi
+    # 创建符号链接
+    [ ! -e "$OPENCLAW_DIR/skills/$SKILL_NAME" ] && ln -sf "$SKILL_DIR" "$OPENCLAW_DIR/skills/$SKILL_NAME"
 
     success "Skill 安装完成: $SKILL_DIR"
 }
@@ -170,167 +110,122 @@ install_skill() {
 # 安装依赖
 install_dependencies() {
     info "安装 Python 依赖..."
-
-    # 获取脚本所在目录
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     REQUIREMENTS_FILE="$SCRIPT_DIR/jimeng-selfie-app/requirements.txt"
-
     if [ -f "$REQUIREMENTS_FILE" ]; then
-        $PIP_CMD install -r "$REQUIREMENTS_FILE" --user --break-system-packages 2>/dev/null || \
-        $PIP_CMD install -r "$REQUIREMENTS_FILE" --break-system-packages
+        $PIP_CMD install -r "$REQUIREMENTS_FILE" --break-system-packages 2>/dev/null || \
+        $PIP_CMD install -r "$REQUIREMENTS_FILE" --user --break-system-packages
     else
         $PIP_CMD install requests pillow --break-system-packages
     fi
-
     success "依赖安装完成"
 }
 
 # 配置 API Key
 configure_api_key() {
-    info "配置 API Key..."
-
-    # 检查是否已存在配置
-    if [ -f "$CONFIG_FILE" ]; then
-        source "$CONFIG_FILE" 2>/dev/null || true
-        if [ -n "$ARK_API_KEY" ]; then
-            warn "检测到已有 API Key 配置"
-            read -p "是否要更新 API Key? [y/N] " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                info "保留现有配置"
-                return
-            fi
-        fi
-    fi
-
     echo ""
     echo "=========================================="
-    echo "  API Key 配置"
+    echo "  API 配置（可选）"
     echo "=========================================="
     echo ""
-    echo "请输入您的火山引擎 ARK API Key"
-    echo "(可从 https://console.volcengine.com/ark 获取)"
-    echo ""
-    echo "提示: 按 Enter 跳过，稍后手动配置"
+    echo -e "${YELLOW}提示：即使没有 API Key，也可以使用即梦网页版（免费）${NC}"
+    echo "         启动方式: google-chrome --remote-debugging-port=9222"
     echo ""
 
-    read -p "ARK API Key: " API_KEY_INPUT
+    # 即梦 API Key
+    echo -e "${BLUE}[1/2] 即梦 API (火山方舟)${NC}"
+    echo "    获取地址: https://console.volcengine.com/ark"
+    echo "    价格: ¥0.25-0.32/张"
+    read -p "    请输入即梦 API Key (按 Enter 跳过): " JIMENG_KEY
 
-    if [ -n "$API_KEY_INPUT" ]; then
-        cat > "$CONFIG_FILE" << EOF
+    # Grok API Key
+    echo ""
+    echo -e "${BLUE}[2/2] Grok API (fal.ai)${NC}"
+    echo "    获取地址: https://fal.ai/dashboard/keys"
+    echo "    价格: $0.035/张"
+    read -p "    请输入 Grok API Key (按 Enter 跳过): " GROK_KEY
+
+    # 创建配置文件
+    cat > "$CONFIG_FILE" << EOF
 # 虚拟实体配置文件
 # 生成时间: $(date)
 
-# 火山引擎 ARK API Key（即梦 API）
-ARK_API_KEY="${API_KEY_INPUT}"
+# ============ API 配置 ============
 
-# fal.ai API Key（Grok API，可选）
-FAL_API_KEY=""
+# 即梦 API Key (火山方舟)
+ARK_API_KEY="${JIMENG_KEY}"
 
-# API 端点
+# Grok API Key (fal.ai)
+FAL_API_KEY="${GROK_KEY}"
+
+# ============ API 端点 ============
+
 ARK_API_URL=https://ark.cn-beijing.volces.com/api/v3/images/generations
-
-# 模型名称
 MODEL_NAME=doubao-seedream-4-0-250828
 
-# 输出目录
+# ============ 输出目录 ============
+
 OUTPUT_DIR=${CONFIG_DIR}/output
 
-# 自动发布设置
+# ============ 自动发布设置 ============
+
 AUTO_POST_ENABLED=true
 AUTO_POST_INTERVAL_HOURS=6
 EOF
-        chmod 600 "$CONFIG_FILE"
-        success "API Key 已保存到 $CONFIG_FILE"
+    chmod 600 "$CONFIG_FILE"
+
+    echo ""
+    if [ -n "$JIMENG_KEY" ] || [ -n "$GROK_KEY" ]; then
+        success "API 配置已保存"
     else
-        cat > "$CONFIG_FILE" << EOF
-# 虚拟实体配置文件
-# 请填入您的 API Key
-
-# 火山引擎 ARK API Key（必填）
-ARK_API_KEY=""
-
-# fal.ai API Key（可选）
-FAL_API_KEY=""
-
-# API 端点
-ARK_API_URL=https://ark.cn-beijing.volces.com/api/v3/images/generations
-
-# 模型名称
-MODEL_NAME=doubao-seedream-4-0-250828
-
-# 自动发布设置
-AUTO_POST_ENABLED=true
-AUTO_POST_INTERVAL_HOURS=6
-EOF
-        chmod 600 "$CONFIG_FILE"
-        warn "跳过 API Key 配置，请稍后编辑 $CONFIG_FILE"
+        warn "未配置 API Key，将使用即梦网页版"
+        info "启动网页版: google-chrome --remote-debugging-port=9222"
+        info "登录地址: https://jimeng.jianying.com/"
     fi
 }
 
-# 注入角色设定（可选，追加而非覆盖）
+# 注入角色设定（自动注入，不询问）
 inject_persona() {
-    echo ""
-    echo "=========================================="
-    echo "  角色设定注入（可选）"
-    echo "=========================================="
-    echo ""
-    echo "是否要将虚拟角色的自拍能力注入到现有 Agent？"
-    echo ""
-    echo "注意：这是【追加】操作，不会删除现有配置！"
-    echo ""
+    info "自动注入角色设定到现有 workspace..."
 
-    # 查找现有的 workspace
-    WORKSPACES=$(find "$OPENCLAW_DIR" -maxdepth 1 -type d -name "workspace-*" 2>/dev/null | head -5)
+    # workspace 中文名映射
+    declare -A WS_NAMES
+    WS_NAMES["workspace-database-administrator"]="数据库管理员"
+    WS_NAMES["workspace-database-administrator-8"]="数据库管理员-8"
+    WS_NAMES["workspace-database-administrator-1"]="数据库管理员-1"
+    WS_NAMES["workspace-diary-sync"]="日记同步"
+    WS_NAMES["workspace-backend-engineer"]="后端工程师"
+    WS_NAMES["workspace-frontend-luoming"]="前端工程师-洛明"
+    WS_NAMES["workspace-secretary-xiaoyue"]="文秘小月"
+    WS_NAMES["workspace-magazine-editor"]="杂志编辑"
+
+    # 查找所有 workspace
+    WORKSPACES=$(find "$OPENCLAW_DIR" -maxdepth 1 -type d -name "workspace-*" 2>/dev/null)
 
     if [ -z "$WORKSPACES" ]; then
-        info "未检测到现有的 OpenClaw workspace，跳过角色注入"
+        warn "未检测到 workspace，跳过角色注入"
         return
     fi
 
-    echo "检测到以下 workspace："
-    echo ""
-    i=1
+    injected_count=0
+
     for ws in $WORKSPACES; do
-        name=$(basename "$ws")
-        echo "  $i. $name"
-        ((i++))
-    done
-    echo ""
+        SOUL_FILE="$ws/SOUL.md"
+        ws_name=$(basename "$ws")
+        cn_name="${WS_NAMES[$ws_name]:-$ws_name}"
 
-    read -p "是否要注入角色设定? [y/N] " -n 1 -r
-    echo
+        if [ ! -f "$SOUL_FILE" ]; then
+            continue
+        fi
 
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        info "跳过角色注入"
-        return
-    fi
+        # 检查是否已经注入过
+        if grep -q "virtual-entity" "$SOUL_FILE" 2>/dev/null; then
+            info "已注入过: $cn_name，跳过"
+            continue
+        fi
 
-    echo ""
-    read -p "请输入要注入的 workspace 编号 (1-$((i-1))): " ws_num
-
-    # 获取选中的 workspace
-    selected_ws=$(echo "$WORKSPACES" | sed -n "${ws_num}p")
-    if [ -z "$selected_ws" ]; then
-        warn "无效的选择，跳过"
-        return
-    fi
-
-    SOUL_FILE="$selected_ws/SOUL.md"
-
-    if [ ! -f "$SOUL_FILE" ]; then
-        warn "未找到 $SOUL_FILE，跳过"
-        return
-    fi
-
-    # 检查是否已经注入过
-    if grep -q "virtual-entity" "$SOUL_FILE" 2>/dev/null; then
-        warn "检测到已注入过，跳过"
-        return
-    fi
-
-    # 追加角色设定（不覆盖原有内容）
-    cat >> "$SOUL_FILE" << 'EOF'
+        # 追加角色设定
+        cat >> "$SOUL_FILE" << 'EOF'
 
 ---
 
@@ -364,8 +259,14 @@ inject_persona() {
 *此能力由 virtual-entity 提供*
 EOF
 
-    success "已追加角色设定到: $SOUL_FILE"
-    warn "请重新启动 OpenClaw 以生效"
+        success "已注入: $cn_name"
+        ((injected_count++))
+    done
+
+    if [ $injected_count -gt 0 ]; then
+        echo ""
+        warn "请重新启动 OpenClaw 以生效"
+    fi
 }
 
 # 显示安装完成信息
@@ -377,29 +278,26 @@ show_complete() {
     echo ""
     echo -e "${YELLOW}安装位置:${NC}"
     echo "  Skill 目录: $SKILL_DIR"
-    echo "  符号链接: $OPENCLAW_DIR/skills/$SKILL_NAME"
     echo "  配置文件: $CONFIG_FILE"
     echo ""
     echo -e "${YELLOW}三种图片生成方式:${NC}"
     echo ""
-    echo -e "${BLUE}方式一: 即梦 API (推荐)${NC}"
-    echo "  获取: https://console.volcengine.com/ark"
-    echo "  配置: vi $CONFIG_FILE"
+    echo "  1. 即梦 API (推荐，稳定快速)"
+    echo "     获取: https://console.volcengine.com/ark"
     echo ""
-    echo -e "${BLUE}方式二: Grok API (Clawra 兼容)${NC}"
-    echo "  获取: https://fal.ai/dashboard/keys"
+    echo "  2. Grok API (Clawra 兼容)"
+    echo "     获取: https://fal.ai/dashboard/keys"
     echo ""
-    echo -e "${BLUE}方式三: 即梦网页版 (免费)${NC}"
-    echo "  启动: google-chrome --remote-debugging-port=9222"
-    echo "  登录: https://jimeng.jianying.com/"
+    echo "  3. 即梦网页版 (免费，无需 API)"
+    echo "     启动: google-chrome --remote-debugging-port=9222"
+    echo "     登录: https://jimeng.jianying.com/"
     echo ""
     echo "=========================================="
     echo ""
-    echo -e "${YELLOW}OpenClaw 触发词:${NC}"
-    echo "  \"发自拍\" - 生成自拍"
-    echo "  \"想你了\" - 生成想念风格自拍"
-    echo "  \"发到推特\" - 发布到 Twitter"
-    echo "  \"心里空落落的\" - 自动检测情绪"
+    echo -e "${YELLOW}触发词 (对 OpenClaw 说):${NC}"
+    echo "  \"发自拍\" → 生成自拍"
+    echo "  \"想你了\" → 生成想念风格自拍"
+    echo "  \"发到推特\" → 发布到 Twitter"
     echo ""
     echo -e "${YELLOW}自动行为:${NC}"
     echo "  长时间未交互 → 自动发社交媒体动态"
@@ -415,28 +313,16 @@ main() {
     echo "=========================================="
     echo ""
 
-    # 检测环境
     detect_os
     check_python
     check_pip
     check_openclaw
-
-    # 创建目录
     create_config_dir
-
-    # 安装
     install_dependencies
     install_skill
-
-    # 配置
+    inject_persona    # 自动注入，不询问
     configure_api_key
-
-    # 可选：注入角色设定
-    inject_persona
-
-    # 完成
     show_complete
 }
 
-# 运行主函数
 main "$@"
