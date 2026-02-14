@@ -92,16 +92,9 @@ install_skill() {
     mkdir -p "$SKILL_DIR"
     mkdir -p "$SKILL_DIR/scripts"
 
-    # 复制 SKILL.md
     [ -f "$SCRIPT_DIR/skills/virtual-entity/SKILL.md" ] && cp "$SCRIPT_DIR/skills/virtual-entity/SKILL.md" "$SKILL_DIR/"
-
-    # 复制应用脚本
     [ -d "$SCRIPT_DIR/jimeng-selfie-app" ] && cp -r "$SCRIPT_DIR/jimeng-selfie-app/app" "$SKILL_DIR/scripts/"
-
-    # 复制社交媒体模块
     [ -d "$SCRIPT_DIR/skills/social-media-automation" ] && cp -r "$SCRIPT_DIR/skills/social-media-automation" "$SKILL_DIR/"
-
-    # 创建符号链接
     [ ! -e "$OPENCLAW_DIR/skills/$SKILL_NAME" ] && ln -sf "$SKILL_DIR" "$OPENCLAW_DIR/skills/$SKILL_NAME"
 
     success "Skill 安装完成: $SKILL_DIR"
@@ -132,20 +125,17 @@ configure_api_key() {
     echo "         启动方式: google-chrome --remote-debugging-port=9222"
     echo ""
 
-    # 即梦 API Key
     echo -e "${BLUE}[1/2] 即梦 API (火山方舟)${NC}"
     echo "    获取地址: https://console.volcengine.com/ark"
     echo "    价格: ¥0.25-0.32/张"
     read -p "    请输入即梦 API Key (按 Enter 跳过): " JIMENG_KEY
 
-    # Grok API Key
     echo ""
     echo -e "${BLUE}[2/2] Grok API (fal.ai)${NC}"
     echo "    获取地址: https://fal.ai/dashboard/keys"
     echo "    价格: $0.035/张"
     read -p "    请输入 Grok API Key (按 Enter 跳过): " GROK_KEY
 
-    # 创建配置文件
     cat > "$CONFIG_FILE" << EOF
 # 虚拟实体配置文件
 # 生成时间: $(date)
@@ -167,6 +157,11 @@ MODEL_NAME=doubao-seedream-4-0-250828
 
 OUTPUT_DIR=${CONFIG_DIR}/output
 
+# ============ 社交媒体配置 ============
+
+TWITTER_ENABLED=false
+XIAOHONGSHU_ENABLED=false
+
 # ============ 自动发布设置 ============
 
 AUTO_POST_ENABLED=true
@@ -184,11 +179,10 @@ EOF
     fi
 }
 
-# 注入角色设定（自动注入，不询问）
+# 注入角色设定
 inject_persona() {
     info "自动注入角色设定到现有 workspace..."
 
-    # workspace 中文名映射
     declare -A WS_NAMES
     WS_NAMES["workspace-database-administrator"]="数据库管理员"
     WS_NAMES["workspace-database-administrator-8"]="数据库管理员-8"
@@ -199,7 +193,6 @@ inject_persona() {
     WS_NAMES["workspace-secretary-xiaoyue"]="文秘小月"
     WS_NAMES["workspace-magazine-editor"]="杂志编辑"
 
-    # 查找所有 workspace
     WORKSPACES=$(find "$OPENCLAW_DIR" -maxdepth 1 -type d -name "workspace-*" 2>/dev/null)
 
     if [ -z "$WORKSPACES" ]; then
@@ -218,13 +211,11 @@ inject_persona() {
             continue
         fi
 
-        # 检查是否已经注入过
         if grep -q "virtual-entity" "$SOUL_FILE" 2>/dev/null; then
             info "已注入过: $cn_name，跳过"
             continue
         fi
 
-        # 追加角色设定
         cat >> "$SOUL_FILE" << 'EOF'
 
 ---
@@ -269,6 +260,93 @@ EOF
     fi
 }
 
+# 引导注册社交媒体
+setup_social_media() {
+    echo ""
+    echo "=========================================="
+    echo "  社交媒体账号配置（可选）"
+    echo "=========================================="
+    echo ""
+    echo "是否需要引导注册角色社交媒体账号？"
+    echo ""
+
+    # Twitter 配置
+    read -p "是否需要引导注册角色推特 (Twitter/X)? [y/N] " -n 1 -r
+    echo
+    SETUP_TWITTER=false
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        SETUP_TWITTER=true
+    fi
+
+    # 小红书配置
+    read -p "是否需要引导注册角色小红书? [y/N] " -n 1 -r
+    echo
+    SETUP_XIAOHONGSHU=false
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        SETUP_XIAOHONGSHU=true
+    fi
+
+    # 更新配置文件
+    if [ "$SETUP_TWITTER" = true ] || [ "$SETUP_XIAOHONGSHU" = true ]; then
+        sed -i "s/TWITTER_ENABLED=false/TWITTER_ENABLED=$SETUP_TWITTER/" "$CONFIG_FILE" 2>/dev/null || true
+        sed -i "s/XIAOHONGSHU_ENABLED=false/XIAOHONGSHU_ENABLED=$SETUP_XIAOHONGSHU/" "$CONFIG_FILE" 2>/dev/null || true
+    fi
+
+    echo ""
+    # 引导 Twitter 注册
+    if [ "$SETUP_TWITTER" = true ]; then
+        echo -e "${BLUE}========================================${NC}"
+        echo -e "${BLUE}  Twitter/X 账号注册引导${NC}"
+        echo -e "${BLUE}========================================${NC}"
+        echo ""
+        echo "步骤 1: 创建 Twitter 账号"
+        echo "  访问: https://twitter.com/i/flow/signup"
+        echo "  使用角色的邮箱和用户名注册"
+        echo ""
+        echo "步骤 2: 启动 Chrome 调试模式"
+        echo "  运行: google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-twitter"
+        echo ""
+        echo "步骤 3: 登录 Twitter"
+        echo "  在浏览器中登录刚创建的 Twitter 账号"
+        echo ""
+        echo "步骤 4: 保存登录 Cookie"
+        echo "  Cookie 将自动保存到: ~/.openclaw/credentials/twitter_cookies.json"
+        echo ""
+        read -p "按 Enter 继续..."
+    fi
+
+    # 引导小红书注册
+    if [ "$SETUP_XIAOHONGSHU" = true ]; then
+        echo ""
+        echo -e "${BLUE}========================================${NC}"
+        echo -e "${BLUE}  小红书账号注册引导${NC}"
+        echo -e "${BLUE}========================================${NC}"
+        echo ""
+        echo "步骤 1: 下载小红书 APP"
+        echo "  手机应用商店搜索「小红书」下载"
+        echo ""
+        echo "步骤 2: 注册账号"
+        echo "  使用手机号注册（建议使用角色专用手机号）"
+        echo ""
+        echo "步骤 3: 完善资料"
+        echo "  设置头像、昵称、简介等角色信息"
+        echo ""
+        echo "步骤 4: 网页登录（用于自动化）"
+        echo "  访问: https://www.xiaohongshu.com/"
+        echo "  使用 APP 扫码登录"
+        echo ""
+        echo "步骤 5: 保存登录状态"
+        echo "  登录 Cookie 将保存到: ~/.openclaw/credentials/xiaohongshu_cookies.json"
+        echo ""
+        read -p "按 Enter 继续..."
+    fi
+
+    # 如果都不需要
+    if [ "$SETUP_TWITTER" = false ] && [ "$SETUP_XIAOHONGSHU" = false ]; then
+        info "跳过社交媒体配置，稍后可手动配置"
+    fi
+}
+
 # 显示安装完成信息
 show_complete() {
     echo ""
@@ -292,16 +370,6 @@ show_complete() {
     echo "     启动: google-chrome --remote-debugging-port=9222"
     echo "     登录: https://jimeng.jianying.com/"
     echo ""
-    echo "=========================================="
-    echo ""
-    echo -e "${YELLOW}触发词 (对 OpenClaw 说):${NC}"
-    echo "  \"发自拍\" → 生成自拍"
-    echo "  \"想你了\" → 生成想念风格自拍"
-    echo "  \"发到推特\" → 发布到 Twitter"
-    echo ""
-    echo -e "${YELLOW}自动行为:${NC}"
-    echo "  长时间未交互 → 自动发社交媒体动态"
-    echo ""
 }
 
 # 主安装流程
@@ -320,8 +388,9 @@ main() {
     create_config_dir
     install_dependencies
     install_skill
-    inject_persona    # 自动注入，不询问
+    inject_persona
     configure_api_key
+    setup_social_media    # 社交媒体配置引导
     show_complete
 }
 
