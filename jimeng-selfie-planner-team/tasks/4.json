@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "设计 CLI 安装器交互流程",
+  "description": "设计类似 Clawra 但针对即梦的 CLI 安装器：\n\n**用户选择流程**：\n1. 检测是否已安装 OpenClaw\n2. 选择 API 使用方式：\n   - A. 我已购买即梦会员 → 使用现有 jimeng-image-generator skill\n   - B. 购买即梦 API → 引导购买文生图 4.0\n3. 配置 API Key（类似 FAL_KEY 的交互逻辑）\n4. 安装技能文件\n5. 更新 OpenClaw 配置\n6. 注入角色模板\n\n参考 Clawra 的 bin/cli.js 逻辑",
+  "activeForm": "设计 CLI 安装流程",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jimeng-selfie"
+version = "1.0.0"
+description = "即梦自拍图片生成器 - 基于火山引擎 Seedream 4.0 API"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Renaissance Team", email = "team@example.com"}
+]
+keywords = [
+    "ai",
+    "image-generation",
+    "selfie",
+    "volcengine",
+    "seedream",
+    "cli"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "requests>=2.28.0",
+    "pillow>=9.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+jimeng-selfie = "app.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/example/jimeng-selfie"
+Documentation = "https://github.com/example/jimeng-selfie#readme"
+Repository = "https://github.com/example/jimeng-selfie.git"
+Issues = "https://github.com/example/jimeng-selfie/issues"
+
+[tool.setuptools]
+packages = ["app"]
+
+[tool.setuptools.package-data]
+app = ["py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

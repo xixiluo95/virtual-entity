@@ -1,0 +1,10 @@
+{
+  "id": "2",
+  "subject": "研究即梦 API 4.0 接口文档",
+  "description": "研究即梦图片生成 4.0 API 的完整接口：\n1. API 调用方式（URL、Headers、Body）\n2. 支持的参数（prompt、宽高比、格式等）\n3. 返回值格式\n4. 与现有 jimeng-image-generator skill 的兼容性\n\n参考链接：https://www.volcengine.com/docs/85621/1817045?lang=zh",
+  "activeForm": "研究即梦 API 文档",
+  "owner": "jimeng-api-researcher",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

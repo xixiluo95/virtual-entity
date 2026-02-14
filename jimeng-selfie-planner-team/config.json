@@ -1,0 +1,47 @@
+{
+  "name": "jimeng-selfie-planner",
+  "description": "规划即梦自拍技能项目，类似 Clawra 但使用即梦 API",
+  "createdAt": 1770996992842,
+  "leadAgentId": "team-lead@jimeng-selfie-planner",
+  "leadSessionId": "a8e33f16-51f6-4d9c-8f6e-d059cfeb5e69",
+  "members": [
+    {
+      "agentId": "team-lead@jimeng-selfie-planner",
+      "name": "team-lead",
+      "agentType": "planner",
+      "model": "glm-5",
+      "joinedAt": 1770996992842,
+      "tmuxPaneId": "",
+      "cwd": "/home/xixil/claude-code",
+      "subscriptions": []
+    },
+    {
+      "agentId": "selfie-strategy-designer@jimeng-selfie-planner",
+      "name": "selfie-strategy-designer",
+      "agentType": "Plan",
+      "model": "claude-opus-4-6",
+      "prompt": "你的任务是设计自拍/他拍策略系统。\n\n**核心规则**：\n- X/小红书发照片：70% 自拍，30% 他拍\n- 给自己发（飞书/Telegram私聊）：100% 自拍（除非用户指定他拍）\n\n**已有资源**：\n- /home/xixil/.claude/skills/jimeng-image-generator/SKILL.md 包含完整的自拍姿势大全\n\n**需要设计**：\n\n1. **目标平台检测逻辑**：\n   - 如何判断是发到 X/小红书（社交媒体）\n   - 如何判断是给自己发（私聊）\n   - 平台类型枚举\n\n2. **自拍/他拍比例控制**：\n   - 随机算法设计\n   - 70/30 分配逻辑\n   - 用户覆盖选项\n\n3. **自拍风格选择**：\n   - 女生自拍：镜面、举高、侧脸、比心、猫爪等 10 种\n   - 男生自拍：对镜、撑脸、仰角、配件等 10 种\n   - 通用场景：咖啡店、办公室、街头等 12 种\n   - 风格选择算法\n\n4. **他拍风格定义**：\n   - 定义 3-5 种他拍风格\n   - 与自拍的区别和转换\n\n请输出完整的策略系统设计文档，包含代码示例。",
+      "color": "yellow",
+      "planModeRequired": false,
+      "joinedAt": 1770997077005,
+      "tmuxPaneId": "in-process",
+      "cwd": "/home/xixil/claude-code",
+      "subscriptions": [],
+      "backendType": "in-process"
+    },
+    {
+      "agentId": "cli-designer@jimeng-selfie-planner",
+      "name": "cli-designer",
+      "agentType": "Plan",
+      "model": "claude-opus-4-6",
+      "prompt": "你的任务是设计针对即梦的 CLI 安装器。\n\n**参考资源**：\n- Clawra 的 bin/cli.js（已分析）\n- OpenClaw CLI 已安装在系统\n\n**用户选择流程设计**：\n\n1. **前置检查**：\n   - 检测 OpenClaw CLI 是否安装\n   - 检测 ~/.openclaw 目录\n   - 检测是否已安装技能\n\n2. **API 使用方式选择**：\n   ```\n   请选择即梦 API 使用方式：\n   A. 我已购买即梦会员 → 使用现有 jimeng-image-generator skill\n   B. 购买即梦 API → 引导购买文生图 4.0\n   ```\n\n3. **配置流程**：\n   - A 路径：验证现有 skill 配置，直接启用\n   - B 路径：\n     - 打开浏览器访问购买页面\n     - 引导获取 API Key\n     - 配置环境变量\n\n4. **安装步骤**：\n   - 安装技能文件到 ~/.openclaw/skills/jimeng-selfie/\n   - 更新 openclaw.json 配置\n   - 注入角色模板到 SOUL.md\n\n5. **参考图处理**：\n   - 询问用户是否上传参考图\n   - 如果是，引导上传或生成三视图\n\n请输出完整的 CLI 设计文档，包含交互流程图和伪代码。",
+      "color": "purple",
+      "planModeRequired": false,
+      "joinedAt": 1770997077006,
+      "tmuxPaneId": "in-process",
+      "cwd": "/home/xixil/claude-code",
+      "subscriptions": [],
+      "backendType": "in-process"
+    }
+  ]
+}

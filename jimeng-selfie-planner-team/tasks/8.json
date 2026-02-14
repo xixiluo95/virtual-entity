@@ -1,0 +1,11 @@
+{
+  "id": "8",
+  "subject": "selfie-strategy-designer",
+  "description": "你的任务是设计自拍/他拍策略系统。\n\n**核心规则**：\n- X/小红书发照片：70% 自拍，30% 他拍\n- 给自己发（飞书/Telegram私聊）：100% 自拍（除非用户指定他拍）\n\n**已有资",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": [],
+  "metadata": {
+    "_internal": true
+  }
+}

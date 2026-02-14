@@ -1,0 +1,13 @@
+# 即梦自拍图片生成器 - 依赖清单
+# Jimeng Selfie Image Generator - Dependencies
+
+# 核心依赖
+requests>=2.28.0          # HTTP 请求
+pillow>=9.0.0             # 图像处理
+
+# 可选依赖 (用于开发)
+# pytest>=7.0.0           # 测试框架
+# pytest-cov>=4.0.0       # 测试覆盖率
+# black>=23.0.0           # 代码格式化
+# isort>=5.12.0           # 导入排序
+# mypy>=1.0.0             # 类型检查

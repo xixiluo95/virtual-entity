@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动媒体项目 - 可视化介绍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e1b4b;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            min-height: 100vh;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #c7d2fe;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tag-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .tag:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #c7d2fe;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 5px 10px;
+        }
+
+        nav a:hover {
+            color: #fff;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #a5b4fc;
+            margin-top: 5px;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--secondary);
+        }
+
+        .feature-item h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .feature-item p {
+            color: #a5b4fc;
+            font-size: 0.9rem;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        .architecture pre {
+            color: #a5b4fc;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            white-space: pre;
+        }
+
+        /* Optimization Cards */
+        .optimization-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s;
+        }
+
+        .optimization-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .optimization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .optimization-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .priority-p0 { background: var(--danger); }
+        .priority-p1 { background: var(--warning); }
+        .priority-p2 { background: var(--success); }
+        .priority-p3 { background: var(--gray); }
+
+        .difficulty-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+
+        .difficulty-easy { background: var(--success); }
+        .difficulty-medium { background: var(--warning); }
+        .difficulty-hard { background: var(--danger); }
+
+        /* Style List */
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .style-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .style-item:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid var(--dark);
+        }
+
+        .timeline-item h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .timeline-item ul {
+            color: #a5b4fc;
+            padding-left: 20px;
+        }
+
+        .timeline-item li {
+            margin-bottom: 5px;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .data-table td {
+            color: #a5b4fc;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 15px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: #a5b4fc;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #a5b4fc;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            nav ul { gap: 15px; }
+            .card { padding: 20px; }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🎬 自动媒体项目</h1>
+            <p class="subtitle">基于 OpenClaw 和即梦 API 的自动媒体内容生成与发布系统</p>
+            <div class="tag-container">
+                <span class="tag">🔥 火山方舟 API</span>
+                <span class="tag">📸 智能自拍</span>
+                <span class="tag">🤖 自动发布</span>
+                <span class="tag">📱 多平台支持</span>
+                <span class="tag">🎨 20+ 风格</span>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav>
+            <ul>
+                <li><a href="#overview">📊 项目概览</a></li>
+                <li><a href="#features">✨ 核心功能</a></li>
+                <li><a href="#architecture">🏗️ 技术架构</a></li>
+                <li><a href="#optimization">🚀 优化方向</a></li>
+                <li><a href="#roadmap">📅 路线图</a></li>
+            </ul>
+        </nav>
+
+        <!-- Stats -->
+        <section id="overview" class="card fade-in">
+            <h2><span class="icon">📊</span> 项目概览</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">自拍风格</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">他拍风格</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">发布平台</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">参考图上限</div>
+                </div>
+            </div>
+            <p style="color: #a5b4fc;">本项目是一个完整的自动媒体内容生成解决方案，类似 Clawra 但使用即梦（火山方舟）API。支持自拍/他拍图片生成、社交媒体自动发布等功能。</p>
+        </section>
+
+        <!-- Features -->
+        <section id="features" class="card slide-up">
+            <h2><span class="icon">✨</span> 核心功能</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h3>📸 智能自拍生成</h3>
+                    <p>支持镜面自拍、举高自拍、侧脸自拍等20+风格，自动选择最佳拍摄角度和姿势。</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🎯 平台策略系统</h3>
+                    <p>私聊100%自拍，社交媒体70%/30%分配，智能适配不同平台的内容偏好。</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔄 多参考图支持</h3>
+                    <p>最多支持10张参考图上传，保持角色一致性，适合长期内容运营。</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📱 自动社交发布</h3>
+                    <p>支持 Twitter/X、小红书等平台自动发布，Cookie 持久化免登录。</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🎨 他拍风格库</h3>
+                    <p>专业人像、街拍风格、自然抓拍等8种他拍风格，丰富内容多样性。</p>
+                </div>
+                <div class="feature-item">
+                    <h3>⚡ API 集成</h3>
+                    <p>火山方舟 Seedream 4.0/4.5 API，稳定可靠，单张成本约 ¥0.25。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Selfie Styles -->
+        <section class="card">
+            <h2><span class="icon">selfie</span> 自拍风格展示</h2>
+            <div class="style-grid">
+                <div class="style-item">🪞 镜面自拍</div>
+                <div class="style-item">📱 举高自拍</div>
+                <div class="style-item">👤 侧脸自拍</div>
+                <div class="style-item">🎭 遮脸自拍</div>
+                <div class="style-item">🌅 背影自拍</div>
+                <div class="style-item">😊 对镜微笑</div>
+                <div class="style-item">😳 低头自拍</div>
+                <div class="style-item">⬆️ 仰望自拍</div>
+                <div class="style-item">😌 闭眼自拍</div>
+                <div class="style-item">💁 撩发自拍</div>
+                <div class="style-item">🤔 托腮自拍</div>
+                <div class="style-item">💜 比心自拍</div>
+                <div class="style-item">✌️ 比V自拍</div>
+                <div class="style-item">🥰 捧脸自拍</div>
+                <div class="style-item">😎 戴墨镜自拍</div>
+                <div class="style-item">🎩 戴帽子自拍</div>
+                <div class="style-item">🌳 户外自拍</div>
+                <div class="style-item">☕ 咖啡厅自拍</div>
+                <div class="style-item">🏖️ 海边自拍</div>
+                <div class="style-item">🌇 日落自拍</div>
+            </div>
+        </section>
+
+        <!-- Architecture -->
+        <section id="architecture" class="card">
+            <h2><span class="icon">🏗️</span> 技术架构</h2>
+            <div class="architecture">
+                <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                      自动媒体项目架构                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐       │
+│  │   CLI 界面   │────▶│  策略系统   │────▶│  API客户端  │       │
+│  │  (cli.py)   │     │(strategy.py)│     │(jimeng_api) │       │
+│  └─────────────┘     └─────────────┘     └─────────────┘       │
+│         │                   │                   │               │
+│         ▼                   ▼                   ▼               │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐       │
+│  │  用户输入   │     │ 风格选择器  │     │ 火山方舟API │       │
+│  └─────────────┘     └─────────────┘     └─────────────┘       │
+│                                                 │               │
+│                                                 ▼               │
+│                                         ┌─────────────┐         │
+│                                         │  图片下载   │         │
+│                                         └─────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+
+技术栈:
+├── 图片生成: 火山方舟 Seedream 4.0/4.5 API
+├── 浏览器自动化: Patchright + Camoufox
+├── 反检测: BrowserForge 指纹伪造
+├── 语言: Python 3.11+
+└── 异步框架: asyncio
+                </pre>
+            </div>
+        </section>
+
+        <!-- Optimization -->
+        <section id="optimization" class="card">
+            <h2><span class="icon">🚀</span> 优化方向分析</h2>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('tech')">🔧 技术架构</button>
+                <button class="tab" onclick="showTab('feature')">📦 功能增强</button>
+                <button class="tab" onclick="showTab('ux')">👤 用户体验</button>
+            </div>
+
+            <!-- Tech Tab -->
+            <div id="tech-tab" class="tab-content active">
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">API 请求重试机制</span>
+                        <span class="priority-badge priority-p0">P0</span>
+                        <span class="difficulty-badge difficulty-easy">简单</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">添加 tenacity 库实现自动重试，提高 API 调用成功率 15-20%</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">异步 API 调用</span>
+                        <span class="priority-badge priority-p1">P1</span>
+                        <span class="difficulty-badge difficulty-medium">中等</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">使用 aiohttp 实现并发请求，批量生成速度提升 3-5 倍</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">缓存层实现</span>
+                        <span class="priority-badge priority-p2">P2</span>
+                        <span class="difficulty-badge difficulty-medium">中等</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">基于提示词和种子的结果缓存，节省 API 调用成本</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">错误处理增强</span>
+                        <span class="priority-badge priority-p1">P1</span>
+                        <span class="difficulty-badge difficulty-easy">简单</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">用户友好的错误提示和完整的操作日志</p>
+                </div>
+            </div>
+
+            <!-- Feature Tab -->
+            <div id="feature-tab" class="tab-content">
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">扩展自拍风格库至 40+</span>
+                        <span class="priority-badge priority-p0">P0</span>
+                        <span class="difficulty-badge difficulty-easy">简单</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">添加运动健身、职场场景、节日主题、宠物互动等新风格</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">角色一致性管理系统</span>
+                        <span class="priority-badge priority-p0">P0</span>
+                        <span class="difficulty-badge difficulty-easy">简单</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">管理多个虚拟角色，确保外观一致性，适合虚拟网红场景</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">多平台自动发布</span>
+                        <span class="priority-badge priority-p1">P1</span>
+                        <span class="difficulty-badge difficulty-medium">中等</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">扩展 TikTok、Instagram、抖音、微博、B站等平台</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">内容调度和定时发布</span>
+                        <span class="priority-badge priority-p1">P1</span>
+                        <span class="difficulty-badge difficulty-medium">中等</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">智能排程、内容日历、发布队列管理</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">视频内容生成</span>
+                        <span class="priority-badge priority-p3">P3</span>
+                        <span class="difficulty-badge difficulty-hard">困难</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">集成 Runway/Pika API 实现图生视频功能</p>
+                </div>
+            </div>
+
+            <!-- UX Tab -->
+            <div id="ux-tab" class="tab-content">
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">首次使用引导向导</span>
+                        <span class="priority-badge priority-p0">P0</span>
+                        <span class="difficulty-badge difficulty-medium">中等</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">交互式 API Key 配置引导，降低新用户入门门槛</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">生成进度可视化</span>
+                        <span class="priority-badge priority-p1">P1</span>
+                        <span class="difficulty-badge difficulty-easy">简单</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">动画 loading 效果 + 已等待时间显示</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">输入模板和快捷选项</span>
+                        <span class="priority-badge priority-p1">P1</span>
+                        <span class="difficulty-badge difficulty-medium">中等</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">角色保存、预设模板、快捷属性选择</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">风格预览图支持</span>
+                        <span class="priority-badge priority-p2">P2</span>
+                        <span class="difficulty-badge difficulty-easy">简单</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">每种风格的示例图片预览，降低选择成本</p>
+                </div>
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <span class="optimization-title">Web 界面支持</span>
+                        <span class="priority-badge priority-p3">P3</span>
+                        <span class="difficulty-badge difficulty-hard">困难</span>
+                    </div>
+                    <p style="color: #a5b4fc; font-size: 0.9rem;">可视化风格选择、表单化输入、实时预览</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section id="roadmap" class="card">
+            <h2><span class="icon">📅</span> 开发路线图</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>第一阶段 (1-2周) - 基础增强</h4>
+                    <ul>
+                        <li>扩展自拍风格库至 40+</li>
+                        <li>实现角色一致性管理</li>
+                        <li>添加 AI 提示词优化</li>
+                        <li>首次使用引导向导</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>第二阶段 (2-4周) - 功能扩展</h4>
+                    <ul>
+                        <li>实现内容调度系统</li>
+                        <li>扩展多平台发布能力</li>
+                        <li>添加基础数据统计</li>
+                        <li>生成进度可视化</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>第三阶段 (1-2月) - 进阶功能</h4>
+                    <ul>
+                        <li>完善数据分析功能</li>
+                        <li>添加内容安全审核</li>
+                        <li>Web 界面开发</li>
+                        <li>探索视频生成功能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="card">
+            <h2><span class="icon">🛠️</span> 技术栈</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>组件</th>
+                        <th>技术</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>图片生成</td>
+                        <td>火山方舟 Seedream API</td>
+                        <td>支持 4.0/4.5 模型</td>
+                    </tr>
+                    <tr>
+                        <td>浏览器自动化</td>
+                        <td>Patchright + Camoufox</td>
+                        <td>双引擎可切换</td>
+                    </tr>
+                    <tr>
+                        <td>反检测</td>
+                        <td>BrowserForge</td>
+                        <td>指纹伪造</td>
+                    </tr>
+                    <tr>
+                        <td>语言</td>
+                        <td>Python 3.11+</td>
+                        <td>异步支持</td>
+                    </tr>
+                    <tr>
+                        <td>异步框架</td>
+                        <td>asyncio</td>
+                        <td>高性能并发</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>🎬 自动媒体项目 | 基于 OpenClaw 和即梦 API</p>
+            <p style="margin-top: 10px;">文档生成时间: 2026-02-14</p>
+        </footer>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Remove active from all buttons
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            // Add active to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+
+        // Style item click animation
+        document.querySelectorAll('.style-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

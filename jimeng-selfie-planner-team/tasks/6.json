@@ -1,0 +1,11 @@
+{
+  "id": "6",
+  "subject": "clawra-analyst",
+  "description": "你的任务是分析 Clawra 项目的完整源代码结构。\n\n请访问 https://github.com/SumeLabs/clawra 并详细分析：\n\n1. **CLI 安装器** (bin/cli.j",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": [],
+  "metadata": {
+    "_internal": true
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "7",
+  "subject": "jimeng-api-researcher",
+  "description": "你的任务是研究即梦图片生成 4.0 API 的完整接口。\n\n请访问 https://www.volcengine.com/docs/85621/1817045?lang=zh 并分析：\n\n1. **A",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": [],
+  "metadata": {
+    "_internal": true
+  }
+}
