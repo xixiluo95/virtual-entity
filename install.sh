@@ -237,45 +237,79 @@ setup_cdp_logins() {
 create_cookie_saver() {
     cat > /tmp/virtual_entity_save_cookies.py << 'COOKIE_SAVER_EOF'
 #!/usr/bin/env python3
-"""自动保存 Cookie 脚本"""
+"""通过 Playwright 保存 Cookie（不关闭浏览器）"""
 import json
 import sys
 import os
-from playwright.sync_api import sync_playwright
 
-def save_cookies(cdp_url, site_name, output_dir):
-    """连接 CDP 并保存 Cookie"""
-    cookie_file = os.path.join(output_dir, f"{site_name}_cookies.json")
-
+def save_cookies_playwright(cdp_port, output_dir):
+    """连接到已打开的 Chrome 并保存所有 Cookie"""
     try:
+        from playwright.sync_api import sync_playwright
+
         with sync_playwright() as p:
-            browser = p.chromium.connect_over_cdp(cdp_url)
-            context = browser.contexts[0]
-            cookies = context.cookies()
+            # 连接到已有的浏览器
+            browser = p.chromium.connect_over_cdp(f"http://localhost:{cdp_port}")
 
-            with open(cookie_file, 'w') as f:
-                json.dump(cookies, f, indent=2)
+            # 获取所有上下文的 Cookie
+            all_cookies = []
+            for context in browser.contexts:
+                cookies = context.cookies()
+                all_cookies.extend(cookies)
 
-            browser.close()
-            print(f"✅ Cookie 已保存: {cookie_file}")
+            # 按 domain 分组保存
+            domains = {}
+            for cookie in all_cookies:
+                domain = cookie.get('domain', 'unknown')
+                if domain not in domains:
+                    domains[domain] = []
+                domains[domain].append(cookie)
+
+            # 保存到对应文件
+            saved_count = 0
+            for domain, cookies in domains.items():
+                # 清理 domain 名称
+                clean_domain = domain.replace('.', '_').replace(':', '_')
+                cookie_file = os.path.join(output_dir, f"{clean_domain}_cookies.json")
+
+                with open(cookie_file, 'w') as f:
+                    json.dump(cookies, f, indent=2)
+                print(f"✅ {domain}: {len(cookies)} 个 Cookie")
+                saved_count += 1
+
+            # 不关闭浏览器！只是断开连接
+            # browser.close()  # 注释掉，不关闭
+
+            print(f"\n✅ 共保存 {saved_count} 个域名的 Cookie 到 {output_dir}")
             return True
+
     except Exception as e:
         print(f"❌ 保存失败: {e}")
         return False
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("用法: save_cookies.py <cdp_url> <site_name> [output_dir]")
+    if len(sys.argv) < 2:
+        print("用法: save_cookies.py <cdp_port> [output_dir]")
         sys.exit(1)
 
-    cdp_url = sys.argv[1]
-    site_name = sys.argv[2]
-    output_dir = sys.argv[3] if len(sys.argv) > 3 else os.path.expanduser("~/.openclaw/credentials")
+    cdp_port = sys.argv[1]
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.expanduser("~/.openclaw/credentials")
 
     os.makedirs(output_dir, exist_ok=True)
-    save_cookies(cdp_url, site_name, output_dir)
+    save_cookies_playwright(cdp_port, output_dir)
 COOKIE_SAVER_EOF
     chmod +x /tmp/virtual_entity_save_cookies.py
+}
+
+# 找到可用端口
+find_available_port() {
+    for port in 9222 9223 9224 9225 9226; do
+        if ! netstat -tlnp 2>/dev/null | grep -q ":$port " && ! ss -tlnp 2>/dev/null | grep -q ":$port "; then
+            echo $port
+            return
+        fi
+    done
+    echo 9229
 }
 
 # 执行 CDP 登录
@@ -289,8 +323,11 @@ do_cdp_login() {
     # 创建 Cookie 保存脚本
     create_cookie_saver
 
-    CDP_PORT=9222
-    CHROME_DATA_DIR="/tmp/chrome-virtual-entity"
+    # 找到可用端口
+    CDP_PORT=$(find_available_port)
+    info "使用端口: $CDP_PORT"
+
+    CHROME_DATA_DIR="/tmp/chrome-virtual-entity-$CDP_PORT"
 
     # 构建要打开的 URL
     URLS=""
@@ -342,19 +379,17 @@ do_cdp_login() {
     echo ""
     info "正在保存 Cookie..."
 
-    CDP_URL="http://localhost:$CDP_PORT"
+    python3 /tmp/virtual_entity_save_cookies.py "$CDP_PORT" "$CREDENTIALS_DIR"
 
-    for site in $SITES; do
-        python3 /tmp/virtual_entity_save_cookies.py "$CDP_URL" "$site" "$CREDENTIALS_DIR"
-    done
-
-    # 关闭浏览器
+    # 询问是否关闭浏览器
     echo ""
-    read -p "是否关闭浏览器? [Y/n] " -n 1 -r
+    read -p "是否关闭浏览器? [y/N] " -n 1 -r
     echo
-    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
         kill $CHROME_PID 2>/dev/null || true
         info "浏览器已关闭"
+    else
+        info "浏览器保持运行，可继续使用"
     fi
 
     success "网页登录配置完成"
